@@ -243,9 +243,9 @@ async def help(client, message):
     if message.chat.type == 'private':   
         await Jebot.send_message(
                chat_id=message.chat.id,
-               text="""<b>Send a song name to download song
+               text="""<b>هاد اخي اللطيف اذا بتحب تحكي معو برد عليك ع مزاجو 😒❤️
 
-@JEBotZ</b>""",
+🤤 @songs404_bot</b>""",
             reply_to_message_id=message.message_id
         )
     else:
