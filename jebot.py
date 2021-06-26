@@ -28,143 +28,177 @@ Jebot = Client(
    bot_token=Config.TG_BOT_TOKEN,
 )
 
-def yt_search(song):
-    videosSearch = VideosSearch(song, limit=1)
-    result = videosSearch.result()
-    if not result:
-        return False
-    else:
-        video_id = result["result"][0]["id"]
-        url = f"https://youtu.be/{video_id}"
-        return url
-
-
-class AioHttp:
-    @staticmethod
-    async def get_json(link):
-        async with aiohttp.ClientSession() as session:
-            async with session.get(link) as resp:
-                return await resp.json()
-
-    @staticmethod
-    async def get_text(link):
-        async with aiohttp.ClientSession() as session:
-            async with session.get(link) as resp:
-                return await resp.text()
-
-    @staticmethod
-    async def get_raw(link):
-        async with aiohttp.ClientSession() as session:
-            async with session.get(link) as resp:
-                return await resp.read()
 
  #For private messages        
  #Ignore commands
  #No bots also allowed
-@Jebot.on_message(filters.private & ~filters.bot & ~filters.command("help") & ~filters.command("start") & ~filters.command("song"))  
-#Lets Keep this Simple
+@Jebot.on_message(filters.private & ~filters.bot & ~filters.command("help") & ~filters.command("start") & ~filters.command("song"))
 async def song(client, message):
-  # Hope this will fix the args issue
-  # defining args as a array instead of direct defining
-  # also splitting text for correct yt search
+ #ImJanindu #JEBotZ
+    cap = "برمج بكل ❤️ من قبل @Mr00lucifer"
+    url = message.text
+    rkp = await message.reply("عم نزلااااا لاتجن يابقرة🙂...")
+    search = SearchVideos(url, offset=1, mode="json", max_results=1)
+    test = search.result()
+    p = json.loads(test)
+    q = p.get("search_result")
+    try:
+        url = q[0]["link"]
+    except BaseException:
+        return await rkp.edit("اسف مالقيت هيك غنية 🙂 جرب تضيف كلمات أكتر😝")
+    type = "audio"
+    if type == "audio":
+        opts = {
+            "format": "bestaudio",
+            "addmetadata": True,
+            "key": "FFmpegMetadata",
+            "writethumbnail": True,
+            "prefer_ffmpeg": True,
+            "geo_bypass": True,
+            "nocheckcertificate": True,
+            "postprocessors": [
+                {
+                    "key": "FFmpegExtractAudio",
+                    "preferredcodec": "mp3",
+                    "preferredquality": "320",
+                }
+            ],
+            "outtmpl": "%(id)s.mp3",
+            "quiet": True,
+            "logtostderr": False,
+        }
+        song = True
+    try:
+        await rkp.edit("جن جن يابقرة جن😝😝عم تنزل...")
+        with YoutubeDL(opts) as rip:
+            rip_data = rip.extract_info(url)
+    except DownloadError as DE:
+        await rkp.edit(f"`{str(DE)}`")
+        return
+    except ContentTooShortError:
+        await rkp.edit("`كاتبلي كلمة لحتى نزلا 🥺 رجاع ضيف كلمات اكتر.`")
+        return
+    except GeoRestrictedError:
+        await rkp.edit(
+            "`اسف الغنية لي عم تحاول تنزلها عليها قيود جغرافية وموجهة لدول معينة😥مافيي نزلتا`"
+        )
+        return
+    except MaxDownloadsReached:
+        await rkp.edit("`تم الوصول إلى الحد الأقصى لعدد التنزيلات حكي عمو المطور ليساعدك @Mr00lucifer.`")
+        return
+    except PostProcessingError:
+        await rkp.edit("خطأ غير معروف بحسابك يرجى التواصل مع المطور لحلها @Mr00lucifer")
+        return
+    except UnavailableVideoError:
+        await rkp.edit("`الاغنية غير متاحة بالصيغة لي بشتغل عليها انا كبوت ولي هيي MP3🙂.`")
+        return
+    except XAttrMetadataError as XAME:
+        await rkp.edit(f"`{XAME.code}: {XAME.msg}\n{XAME.reason}`")
+        return
+    except ExtractorError:
+        await rkp.edit("`يوجد مشكلة اثناء استخراجي لمعلومات الأغنية يرجى المحاولة بشكل اخر🥺.`")
+        return
+    except Exception as e:
+        await rkp.edit(f"{str(type(e)): {str(e)}}")
+        return
+    time.time()
+    if song:
+        await rkp.edit("هدي عم ارفعا ع التيليجرام🙈") #ImJanindu
+        lol = "./thumb.jpg"
+        lel = await message.reply_audio(
+                 f"{rip_data['id']}.mp3",
+                 duration=int(rip_data["duration"]),
+                 title=str(rip_data["title"]),
+                 performer=str(rip_data["uploader"]),
+                 thumb=lol,
+                 caption=cap)  #Mr00lucifer
+        await rkp.delete()
   
-
-    message.chat.id
-    user_id = message.from_user["id"]
-    args = message.text.split(None, 1)
-    args = str(args)
-    # Adding +song for better  searching
-    args = args + " " + "song"
-    #Defined above.. THINK USELESS
-    #args = get_arg(message) + " " + "song"
-
-    #Added while callback... I think Useless    
-    #if args.startswith("/help"):
-        #return ""    
-    status = await message.reply(
-             text="<b>عم نزللللك الغنية طولك بالك وجن مابهمني انا بوت مو لطيف😒😒\n\n تم تكويد البوت بكل ❤️ من قبل @Mr00lucifer 🇸🇾</b>",
-             disable_web_page_preview=True,
-                        reply_markup=InlineKeyboardMarkup(
-                            [[
-                                    InlineKeyboardButton(
-                                        "حساب معلمي🙈", url="https://www.facebook.com/mohammedsjnoube")
-                                ]]
-                        ),
-               parse_mode="html",
-        reply_to_message_id=message.message_id
-      )
-    video_link = yt_search(args)
-    if not video_link:
-        await status.edit("<b>مالقيتا تلاعب بلكلمات وترتيبن شو بسويلك😑</b>")
-        return ""
-    yt = YouTube(video_link)
-    audio = yt.streams.filter(only_audio=True).first()
-    try:
-        download = audio.download(filename=f"{str(user_id)}")
-    except Exception as ex:
-        await status.edit("<b>مشكلة بحسابك🤕اذا استمرت حكي عمو المطور يزبطلك ياها هووون @Mr00lucifer</b>")
-        LOGGER.error(ex)
-        return ""
-    os.rename(download, f"{str(user_id)}.mp3")
-    await Jebot.send_chat_action(message.chat.id, "upload_audio")
-    await Jebot.send_audio(
-        chat_id=message.chat.id,
-        audio=f"{str(user_id)}.mp3",
-        duration=int(yt.length),
-        title=str(yt.title),
-        performer=str(yt.author),
-        reply_to_message_id=message.message_id,
-    )
-    await status.delete()
-    os.remove(f"{str(user_id)}.mp3")    
     
-    
-    
-@Jebot.on_message(filters.command("song"))
+@Jebot.on_message(filters.command("song") & ~filters.edited & filters.group)
 async def song(client, message):
-    message.chat.id
-    user_id = message.from_user["id"]
-    args = get_arg(message) + " " + "song"
-    if args.startswith(" "):
-        await message.reply("<b>اي شووو ماحطيت مسافة وحدة واسم الغنية🙂.. لماشي ابعت الاسم مباشرة</b>")
-        return ""
-    status = await message.reply(
-             text="<b>عم نزللللك الغنية طولك بالك وجن مابهمني انا بوت مو لطيف😒😒\n\n تم تكويد البوت بكل ❤️ من قبل @Mr00lucifer 🇸🇾</b>",
-             disable_web_page_preview=True,
-                        reply_markup=InlineKeyboardMarkup(
-                            [[
-                                    InlineKeyboardButton(
-                                        "حساب معلمي🙈", url="https://www.facebook.com/mohammedsjnoube")
-                                ]]
-                        ),
-               parse_mode="html",
-        reply_to_message_id=message.message_id
-      )
-    video_link = yt_search(args)
-    if not video_link:
-        await status.edit("<b>مالقيتا تلاعب بلكلمات وترتيبن شو بسويلك😑</b>")
-        return ""
-    yt = YouTube(video_link)
-    audio = yt.streams.filter(only_audio=True).first()
+    cap = "@Mr00lucifer"
+    url = message.text.split(None, 1)[1]
+    rkp = await message.reply("عم نزلااا لاتجن يابقرة🙂")
+    if not url:
+        await rkp.edit("أي شو الأغنية لي بدك نزلا؟؟أكتب اسما يلا🙈 بعد الأمر`")
+    search = SearchVideos(url, offset=1, mode="json", max_results=1)
+    test = search.result()
+    p = json.loads(test)
+    q = p.get("search_result")
     try:
-        download = audio.download(filename=f"{str(user_id)}")
-    except Exception as ex:
-        await status.edit("<b>مشكلة بحسابك🤕اذا استمرت حكي عمو المطور يزبطلك ياها هووون @Mr00lucifer</b>")
-        LOGGER.error(ex)
-        return ""
-    os.rename(download, f"{str(user_id)}.mp3")
-    await Jebot.send_chat_action(message.chat.id, "upload_audio")
-    await Jebot.send_audio(
-        chat_id=message.chat.id,
-        audio=f"{str(user_id)}.mp3",
-        duration=int(yt.length),
-        title=str(yt.title),
-        performer=str(yt.author),
-        reply_to_message_id=message.message_id,
-    )
-    await status.delete()
-    os.remove(f"{str(user_id)}.mp3")
-
+        url = q[0]["link"]
+    except BaseException:
+        return await rkp.edit("اسف مالقيتااا جرب غير بالكلمات 🥺")
+    type = "audio"
+    if type == "audio":
+        opts = {
+            "format": "bestaudio",
+            "addmetadata": True,
+            "key": "FFmpegMetadata",
+            "writethumbnail": True,
+            "prefer_ffmpeg": True,
+            "geo_bypass": True,
+            "nocheckcertificate": True,
+            "postprocessors": [
+                {
+                    "key": "FFmpegExtractAudio",
+                    "preferredcodec": "mp3",
+                    "preferredquality": "320",
+                }
+            ],
+            "outtmpl": "%(id)s.mp3",
+            "quiet": True,
+            "logtostderr": False,
+        }
+        song = True
+    try:
+        await rkp.edit("جن جن يابقرة عم نزلاا😝")
+        with YoutubeDL(opts) as rip:
+            rip_data = rip.extract_info(url)
+    except DownloadError as DE:
+        await rkp.edit(f"`{str(DE)}`")
+        return
+    except ContentTooShortError:
+        await rkp.edit("`كاتبلي كلمة لحتى نزلا 🥺 رجاع ضيف كلمات اكتر.`")
+        return
+    except GeoRestrictedError:
+        await rkp.edit(
+            "`اسف الغنية لي عم تحاول تنزلها عليها قيود جغرافية وموجهة لدول معينة😥مافيي نزلتا`"
+        )
+        return
+    except MaxDownloadsReached:
+        await rkp.edit("`تم الوصول إلى الحد الأقصى لعدد التنزيلات حكي عمو المطور ليساعدك @Mr00lucifer.`")
+        return
+    except PostProcessingError:
+        await rkp.edit("خطأ غير معروف بحسابك يرجى التواصل مع المطور لحلها @Mr00lucifer")
+        return
+    except UnavailableVideoError:
+        await rkp.edit("`الاغنية غير متاحة بالصيغة لي بشتغل عليها انا كبوت ولي هيي MP3🙂.`")
+        return
+    except XAttrMetadataError as XAME:
+        await rkp.edit(f"`{XAME.code}: {XAME.msg}\n{XAME.reason}`")
+        return
+    except ExtractorError:
+        await rkp.edit("`يوجد مشكلة اثناء استخراجي لمعلومات الأغنية يرجى المحاولة بشكل اخر🥺.`")
+        return
+    except Exception as e:
+        await rkp.edit(f"{str(type(e)): {str(e)}}")
+        return
+    time.time()
+    if song:
+        await rkp.edit("هدي عم ارفعا ع التيليجرام🙈") #ImJanindu
+        lol = "./thumb.jpg"
+        lel = await message.reply_audio(
+                 f"{rip_data['id']}.mp3",
+                 duration=int(rip_data["duration"]),
+                 title=str(rip_data["title"]),
+                 performer=str(rip_data["uploader"]),
+                 thumb=lol,
+                 caption=cap)  #JEBotZ
+        await rkp.delete()
+ 
+    
 @Jebot.on_message(filters.command("start"))
 async def start(client, message):
    if message.chat.type == 'private':
@@ -174,13 +208,15 @@ async def start(client, message):
 
 هاد معلمي لي صنعني اذا بتحب تسألو شي @Mr00lucifer 🇸🇾
 
-ضغاط ع زر  اخي التاني لتشوف البوت تاني اللطيف 🙂🙂</b>""",   
+ضغاط ع زر  اخي التاني لتشوف البوت تاني اللطيف 🙂🙂</b>""", 
+
+Hit help button to find out more about how to use me</b>""",   
                             reply_markup=InlineKeyboardMarkup(
                                 [[
                                         InlineKeyboardButton(
-                                            "اخي اللطيف🙂", callback_data="help"),
+                                            " اخي الطيف🙂", callback_data="help"),
                                         InlineKeyboardButton(
-                                            "صفحتنا عالفيس☺️", url="https://www.facebook.com/solu404tion")
+                                            "حساب معلمي🙈", url="https://www.facebook.com/mohammedsjnoube")
                                     ]]
                             ),        
             disable_web_page_preview=True,        
@@ -191,11 +227,11 @@ async def start(client, message):
 
        await Jebot.send_message(
                chat_id=message.chat.id,
-               text="""<b>Song Downloader Online\n\n</b>""",   
+               text="""<b>أنا جاااهز للأغاني🤩💛.\n\n</b>""",   
                             reply_markup=InlineKeyboardMarkup(
                                 [[
                                         InlineKeyboardButton(
-                                            "اخي اللطيف🙂", callback_data="help")
+                                            "اخي التاني", callback_data="help")
                                         
                                     ]]
                             ),        
@@ -209,15 +245,15 @@ async def help(client, message):
     if message.chat.type == 'private':   
         await Jebot.send_message(
                chat_id=message.chat.id,
-               text="""<b>هاد اخي اللطيف اذا بتحب تحكي معو برد عليك ع مزاجو 😒❤️
+               text="""<b>Send a song name to download song
 
-🤤 @songs404_bot</b>""",
+@JEBotZ</b>""",
             reply_to_message_id=message.message_id
         )
     else:
         await Jebot.send_message(
                chat_id=message.chat.id,
-               text="<b>اي شووو ماحطيت مسافة وحدة واسم الغنية🙂.. لماشي ابعت الاسم مباشرة</b>",
+               text="<b>Song Downloader Help.\n\nSyntax: `/song guleba`</b>",
             reply_to_message_id=message.message_id
         )     
         
@@ -233,7 +269,7 @@ print(
     """
 Bot Started!
 
-Join @sjnoin
+@Mr00lucifer
 """
 )
 
