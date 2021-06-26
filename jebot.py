@@ -209,8 +209,6 @@ async def start(client, message):
 هاد معلمي لي صنعني اذا بتحب تسألو شي @Mr00lucifer 🇸🇾
 
 ضغاط ع زر  اخي التاني لتشوف البوت تاني اللطيف 🙂🙂</b>""", 
-
-Hit help button to find out more about how to use me</b>""",   
                             reply_markup=InlineKeyboardMarkup(
                                 [[
                                         InlineKeyboardButton(
